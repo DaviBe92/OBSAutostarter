@@ -52,11 +52,10 @@ function script_unload()
 
 	if obs.obs_data_get_bool(localSettings, "boolAutoquit") then 
 		cmd = 'taskkill /IM "' .. execName .. '"'
+		-- execute command
+		os.execute(cmd)
 	end
-
-	-- execute command
-	os.execute(cmd)
-
+	
 end
 
 function launch_func()
