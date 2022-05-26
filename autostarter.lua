@@ -9,9 +9,9 @@ function script_properties()
 
 	local props = obs.obs_properties_create()
 	
-	obs.obs_properties_add_editable_list(props, "execPaths", "Executables", obs.OBS_EDITABLE_LIST_TYPE_FILES, "*.exe, *.vbs, *.bat, *.lnk, *.*", nil)
+	obs.obs_properties_add_editable_list(props, "execPaths", "Executables", obs.OBS_EDITABLE_LIST_TYPE_FILES, "*.*", nil)
 
-	obs.obs_properties_add_bool(props, "boolAutoquit", "Autoclose on OBS quit? \n(Only works with .exe)")
+	obs.obs_properties_add_bool(props, "boolAutoquit", "Autoclose on OBS quit? \n(Only works with .exe files)")
 
 	obs.obs_properties_add_button(props, "launchButton", "Launch", launch_func)
 	return props
@@ -20,13 +20,12 @@ end
 -- A function named script_description returns the description shown to
 -- the user
 function script_description()
-	return "Starts an executable then OBS is started.\n\nV0.4  \n\nMade by Davi Be"
+	return "Starts programms when OBS is started.\n\nV0.5  \n\nMade by Davi Be"
 end
 
 
 -- A function named script_defaults will be called to set the default settings
 function script_defaults(settings)
-	obs.obs_data_set_default_string(settings, "execPath", "")
 end
 
 -- A function named script_update will be called when settings are changed
