@@ -9,6 +9,8 @@ function script_properties()
 
 	local props = obs.obs_properties_create()
 	
+	obs.obs_properties_add_bool(props, "boolIsEnabled", "Enabled")
+	
 	obs.obs_properties_add_editable_list(props, "execPaths", "Executables", obs.OBS_EDITABLE_LIST_TYPE_FILES, "*.*", nil)
 
 	obs.obs_properties_add_bool(props, "boolAutoquit", "Autoclose on OBS quit? \n(Only works with .exe files)")
@@ -75,34 +77,37 @@ function script_unload()
 	end
 end
 
+-- function will be called on StartUp
 function launch_func()
 	local execPaths = obs.obs_data_get_array(localSettings, 'execPaths')
 	local count = obs.obs_data_array_count(execPaths)
 
-	for i = 0, count do 	
-        local item = obs.obs_data_array_item(execPaths, i)
-        local execPath = obs.obs_data_get_string(item, "value")
+	if obs.obs_data_get_bool(localSettings, "boolIsEnabled") then
+		for i = 0, count do 	
+			local item = obs.obs_data_array_item(execPaths, i)
+			local execPath = obs.obs_data_get_string(item, "value")
 		
-		-- replace / by \
-		execPath = execPath:gsub("/","\\")
+			-- replace / by \
+			execPath = execPath:gsub("/","\\")
 	
-		-- obs.script_log(obs.LOG_INFO, execPath)
+			-- obs.script_log(obs.LOG_INFO, execPath)
 		
-		-- only proceed if there is a  file selected
-		if execPath == '' then return nil end
+			-- only proceed if there is a  file selected
+			if execPath == '' then return nil end
 		
-		-- get Directory
-		local index = execPath:match'^.*()\\'
-		local execDir = execPath:sub(1,index)
+			-- get Directory
+			local index = execPath:match'^.*()\\'
+			local execDir = execPath:sub(1,index)
 		
-		-- get Executable
-		local execName = execPath:sub(index + 1, execPath:len())
+			-- get Executable
+			local execName = execPath:sub(index + 1, execPath:len())
 		
-		-- assemble command
-		local cmd = 'start "" /D "' .. execDir .. '" "' .. execName .. '"'
+			-- assemble command
+			local cmd = 'start "" /D "' .. execDir .. '" "' .. execName .. '"'
 			
-		-- execute command
-		os.execute(cmd)
+			-- execute command
+			os.execute(cmd)
+		end
 	end
 
 	obs.obs_data_array_release(execPaths)
