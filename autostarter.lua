@@ -38,7 +38,9 @@ end
 -- a function named script_load will be called on startup
 function script_load(settings)
 	localSettings = settings
-	launch_func()
+	if obs.obs_data_get_bool(localSettings, "boolIsEnabled") then
+		launch_func()
+	end
 end
 
 -- save additional data not set by user
@@ -77,37 +79,35 @@ function script_unload()
 	end
 end
 
--- function will be called on StartUp
+-- function will be called on StartUp or when Launch is pressed
 function launch_func()
 	local execPaths = obs.obs_data_get_array(localSettings, 'execPaths')
 	local count = obs.obs_data_array_count(execPaths)
 
-	if obs.obs_data_get_bool(localSettings, "boolIsEnabled") then
-		for i = 0, count do 	
-			local item = obs.obs_data_array_item(execPaths, i)
-			local execPath = obs.obs_data_get_string(item, "value")
-		
-			-- replace / by \
-			execPath = execPath:gsub("/","\\")
+	for i = 0, count do 	
+		local item = obs.obs_data_array_item(execPaths, i)
+		local execPath = obs.obs_data_get_string(item, "value")
 	
-			-- obs.script_log(obs.LOG_INFO, execPath)
+		-- replace / by \
+		execPath = execPath:gsub("/","\\")
+
+		-- obs.script_log(obs.LOG_INFO, execPath)
+	
+		-- only proceed if there is a  file selected
+		if execPath == '' then return nil end
+	
+		-- get Directory
+		local index = execPath:match'^.*()\\'
+		local execDir = execPath:sub(1,index)
+	
+		-- get Executable
+		local execName = execPath:sub(index + 1, execPath:len())
+	
+		-- assemble command
+		local cmd = 'start "" /D "' .. execDir .. '" "' .. execName .. '"'
 		
-			-- only proceed if there is a  file selected
-			if execPath == '' then return nil end
-		
-			-- get Directory
-			local index = execPath:match'^.*()\\'
-			local execDir = execPath:sub(1,index)
-		
-			-- get Executable
-			local execName = execPath:sub(index + 1, execPath:len())
-		
-			-- assemble command
-			local cmd = 'start "" /D "' .. execDir .. '" "' .. execName .. '"'
-			
-			-- execute command
-			os.execute(cmd)
-		end
+		-- execute command
+		os.execute(cmd)
 	end
 
 	obs.obs_data_array_release(execPaths)
