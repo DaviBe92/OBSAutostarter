@@ -1,13 +1,28 @@
 // Reads the autostart config and starts the programs listed in it
+#include <windows.h>
+#include <TlHelp32.h>
 #include "autostart.hpp"
 #include "config.hpp"
 #include <QString>
 #include <obs-module.h>
-#include <TlHelp32.h>
 #include <algorithm>
+
+class ScopedHandle {
+    HANDLE handle;
+public:
+    explicit ScopedHandle(HANDLE h) : handle(h) {}
+    ~ScopedHandle() { if (handle != INVALID_HANDLE_VALUE) CloseHandle(handle); }
+    HANDLE get() const { return handle; }
+    // Prevent copying
+    ScopedHandle(const ScopedHandle&) = delete;
+    ScopedHandle& operator=(const ScopedHandle&) = delete;
+};
 
 std::vector<HANDLE> AutoStarter::launchedProcesses;
 
+/**
+ * @brief Launch all programs defined in a specific loadout.
+ */
 bool AutoStarter::LaunchPrograms(const std::string &loadoutName)
 {
 	auto &config = PluginConfig::Get();
@@ -33,18 +48,20 @@ bool AutoStarter::LaunchPrograms(const std::string &loadoutName)
 	return success;
 }
 
+/**
+ * @brief Checks if any process with the given executable name is running.
+ */
 bool AutoStarter::IsProcessRunning(const std::string& executableName)
 {
-    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (snapshot == INVALID_HANDLE_VALUE) {
+    ScopedHandle snapshot(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
+    if (snapshot.get() == INVALID_HANDLE_VALUE) {
         return false;
     }
 
     PROCESSENTRY32W pe32;
     pe32.dwSize = sizeof(pe32);
 
-    if (!Process32FirstW(snapshot, &pe32)) {
-        CloseHandle(snapshot);
+    if (!Process32FirstW(snapshot.get(), &pe32)) {
         return false;
     }
 
@@ -57,15 +74,16 @@ bool AutoStarter::IsProcessRunning(const std::string& executableName)
         std::transform(processName.begin(), processName.end(), processName.begin(), ::tolower);
         
         if (processName == searchName) {
-            CloseHandle(snapshot);
             return true;
         }
-    } while (Process32NextW(snapshot, &pe32));
+    } while (Process32NextW(snapshot.get(), &pe32));
 
-    CloseHandle(snapshot);
     return false;
 }
 
+/**
+ * @brief Attempts to launch a single program, either as .exe or via ShellExecute for other file types.
+ */
 bool AutoStarter::LaunchProgram(const Program &program)
 {
     // Check if program is already running
@@ -139,6 +157,9 @@ bool AutoStarter::LaunchProgram(const Program &program)
 	return false;
 }
 
+/**
+ * @brief Quits all programs previously launched by AutoStarter.
+ */
 bool AutoStarter::QuitPrograms()
 {
 	bool success = true;
@@ -153,6 +174,9 @@ bool AutoStarter::QuitPrograms()
 	return success;
 }
 
+/**
+ * @brief Terminates a specific process handle.
+ */
 bool AutoStarter::QuitProcess(HANDLE process)
 {
 	if (process == NULL || process == INVALID_HANDLE_VALUE)
@@ -171,6 +195,9 @@ bool AutoStarter::QuitProcess(HANDLE process)
 	return false;
 }
 
+/**
+ * @brief Clears out the internal list of process handles and closes them.
+ */
 void AutoStarter::ClearProcesses()
 {
 	for (HANDLE process : launchedProcesses) {

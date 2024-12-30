@@ -1,3 +1,11 @@
+/**
+ * @file launch-widget.cpp
+ * @brief Implementation of the loadout launch dialog
+ * 
+ * Implements a modal dialog that appears when OBS starts (if configured)
+ * to let users choose which loadout of applications to launch.
+ */
+
 #include "launch-widget.hpp"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -7,77 +15,84 @@
 #include "config.hpp"
 #include "autostart.hpp"
 
-static LaunchWidget *widget = nullptr;
+static LaunchWidget *widget = nullptr; ///< Singleton instance of the launch dialog
 
 LaunchWidget::LaunchWidget(QWidget *parent) : QDialog(parent)
 {
-	setWindowTitle("OBS Autostarter");
-	setFixedSize(300, 150);
-	setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
-	setModal(true); // Block interaction with parent window
+    // Configure dialog properties
+    setWindowTitle("OBS Autostarter");
+    setFixedSize(300, 150);
+    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
+    setModal(true); // Block interaction with parent window
 
-	auto mainLayout = new QVBoxLayout(this);
+    // Create and configure layouts
+    auto mainLayout = new QVBoxLayout(this);
 
-	// Loadout selection in horizontal layout
-	auto loadoutLayout = new QHBoxLayout();
-	loadoutTitle = new QLabel("Loadout:", this);
-	loadoutCombo = new QComboBox(this);
-	loadoutLayout->addWidget(loadoutTitle);
-	loadoutLayout->addWidget(loadoutCombo);
-	mainLayout->addLayout(loadoutLayout);
+    // Setup loadout selection controls
+    auto loadoutLayout = new QHBoxLayout();
+    loadoutTitle = new QLabel("Loadout:", this);
+    loadoutCombo = new QComboBox(this);
+    loadoutLayout->addWidget(loadoutTitle);
+    loadoutLayout->addWidget(loadoutCombo);
+    mainLayout->addLayout(loadoutLayout);
 
-	// Buttons
-	auto buttonLayout = new QHBoxLayout();
-	launchButton = new QPushButton("Launch", this);
-	cancelButton = new QPushButton("Skip", this);
+    // Setup action buttons
+    auto buttonLayout = new QHBoxLayout();
+    launchButton = new QPushButton("Launch", this);
+    cancelButton = new QPushButton("Skip", this);
 
-	buttonLayout->addWidget(launchButton);
-	buttonLayout->addWidget(cancelButton);
-	mainLayout->addLayout(buttonLayout);
+    buttonLayout->addWidget(launchButton);
+    buttonLayout->addWidget(cancelButton);
+    mainLayout->addLayout(buttonLayout);
 
-	connect(launchButton, &QPushButton::clicked, this,
-		&LaunchWidget::onLaunchClicked);
-	connect(cancelButton, &QPushButton::clicked, this,
-		&LaunchWidget::onCancelClicked);
+    // Connect button signals to slots
+    connect(launchButton, &QPushButton::clicked, this,
+        &LaunchWidget::onLaunchClicked);
+    connect(cancelButton, &QPushButton::clicked, this,
+        &LaunchWidget::onCancelClicked);
 }
 
 void LaunchWidget::onLaunchClicked()
 {
-	// Save selected loadout as current
-	auto &config = PluginConfig::Get();
-	config.currentLoadout = loadoutCombo->currentText().toStdString();
-	config.Save();
-	// Launch the applications
-	AutoStarter::LaunchPrograms(loadoutCombo->currentText().toStdString());
-	accept();
+    // Save selected loadout as current
+    auto &config = PluginConfig::Get();
+    config.currentLoadout = loadoutCombo->currentText().toStdString();
+    config.Save();
+    // Launch the applications
+    AutoStarter::LaunchPrograms(loadoutCombo->currentText().toStdString());
+    accept();
 }
 
 void LaunchWidget::onCancelClicked()
 {
-	reject();
+    reject();
 }
 
 void launch_widget_create()
 {
-	if (!widget) {
-		widget = new LaunchWidget();
-		// Load loadouts
-		auto &config = PluginConfig::Get();
-		for (const auto &loadout : config.loadouts) {
-			widget->loadoutCombo->addItem(
-				QString::fromStdString(loadout.name));
-		}
-		// Get the current loadout
-		if (!config.currentLoadout.empty()) {
-			widget->loadoutCombo->setCurrentText(
-				QString::fromStdString(config.currentLoadout));
-		}
-		widget->show();
-	}
+    // Create dialog only if it doesn't exist
+    if (!widget) {
+        widget = new LaunchWidget();
+        
+        // Populate loadout list from configuration
+        auto &config = PluginConfig::Get();
+        for (const auto &loadout : config.loadouts) {
+            widget->loadoutCombo->addItem(
+                QString::fromStdString(loadout.name));
+        }
+
+        // Restore previously selected loadout if available
+        if (!config.currentLoadout.empty()) {
+            widget->loadoutCombo->setCurrentText(
+                QString::fromStdString(config.currentLoadout));
+        }
+        
+        widget->show();
+    }
 }
 
 void launch_widget_destroy()
 {
-	delete widget;
-	widget = nullptr;
+    delete widget;
+    widget = nullptr;
 }

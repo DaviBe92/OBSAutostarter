@@ -5,13 +5,19 @@
 #include <QFile>
 #include <QStandardPaths>
 
-PluginConfig PluginConfig::instance;
-
-PluginConfig &PluginConfig::Get()
+/**
+ * @brief Returns the singleton instance of PluginConfig
+ */
+PluginConfig& PluginConfig::Get()
 {
-	return instance;
+    static PluginConfig instance;
+    return instance;
 }
 
+/**
+ * @brief Constructs the path to the config file
+ * @return QString containing the full path to config.json
+ */
 QString PluginConfig::GetConfigPath()
 {
 	char *config_dir = obs_module_config_path("");
@@ -25,19 +31,27 @@ QString PluginConfig::GetConfigPath()
 	return path + "config.json";
 }
 
+/**
+ * @brief Serializes the configuration to JSON format
+ * @return QJsonObject containing all configuration data
+ */
 QJsonObject PluginConfig::ToJson() const
 {
+	// Create root JSON object
 	QJsonObject json;
 	json["enabled"] = enabled;
 	json["currentLoadout"] = QString::fromStdString(currentLoadout);
 	json["askToLaunch"] = askToLaunch;
 	json["autoclose"] = autoclose;
 
+	// Serialize loadouts array
 	QJsonArray loadoutsArray;
 	for (const auto &loadout : loadouts) {
+		// Create loadout object
 		QJsonObject loadoutObj;
 		loadoutObj["name"] = QString::fromStdString(loadout.name);
 
+		// Serialize programs in loadout
 		QJsonArray programsArray;
 		for (const auto &program : loadout.programs) {
 			QJsonObject programObj;
@@ -57,13 +71,19 @@ QJsonObject PluginConfig::ToJson() const
 	return json;
 }
 
+/**
+ * @brief Deserializes configuration from JSON format
+ * @param json QJsonObject containing configuration data
+ */
 void PluginConfig::FromJson(const QJsonObject &json)
 {
+	// Load basic settings
 	enabled = json["enabled"].toBool(false);
 	currentLoadout = json["currentLoadout"].toString().toStdString();
 	askToLaunch = json["askToLaunch"].toBool(true);
 	autoclose = json["autoclose"].toBool(false);
 
+	// Parse loadouts array
 	loadouts.clear();
 	QJsonArray loadoutsArray = json["loadouts"].toArray();
 	for (const auto &loadoutVal : loadoutsArray) {

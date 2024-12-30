@@ -21,6 +21,7 @@ Plugin for OBS Studio that automatically launches and quits programs alongside O
 - 💬 Added launch confirmation option
 - 🔧 More configuration options
 - 🛠️ Full process management with proper termination
+- 🔍 Prevents duplicate programm launches
 - ⚡ Faster startup and response times
 - 🖥️ Modern UI with better usability
 

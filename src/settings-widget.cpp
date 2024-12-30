@@ -5,6 +5,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFileDialog>
+#include <QLabel>
 #include <QDesktopServices>
 #include <QUrl>
 #include <QInputDialog>
@@ -16,6 +17,7 @@ ProgramListItem::ProgramListItem(const QString &path, bool minimized,
 				 QWidget *parent)
 	: QWidget(parent), fullPath(path)
 {
+	// Create layout for the program item row
 	auto layout = new QHBoxLayout(this);
 	layout->setContentsMargins(5, 0, 5, 0); // Reduce vertical margins
 
@@ -40,6 +42,7 @@ SettingsWidget *settings_instance = nullptr;
 
 SettingsWidget::SettingsWidget(QWidget *parent) : QWidget(parent)
 {
+	// Initialize and set up the main configuration window layout
 	settings_instance = this;
 	setWindowTitle(QString::fromStdString(Constants::WINDOW_TITLE));
 	setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
@@ -247,65 +250,73 @@ void SettingsWidget::onClose()
 
 void SettingsWidget::onAddProgram()
 {
-	QString filename = QFileDialog::getOpenFileName(this, "Select Program",
-							"", "All Files (*.*)");
-	if (!filename.isEmpty()) {
-		QFileInfo fileInfo(filename);
-		auto &config = PluginConfig::Get();
-		if (Loadout *loadout = config.GetLoadout(
-			    loadoutCombo->currentText().toStdString())) {
-			Program program;
-			program.path = fileInfo.absolutePath().toStdString();
-			program.executable = fileInfo.fileName().toStdString();
-			program.minimized = false;
-			loadout->programs.push_back(program);
+	// Let user select a file, then create a new program entry in the current loadout
+    QString filename = QFileDialog::getOpenFileName(this, "Select Program", "", "All Files (*.*)");
+    if (filename.isEmpty()) {
+        return;
+    }
 
-			auto item = new QListWidgetItem(programsList);
-			auto widget = new ProgramListItem(filename, false,
-							  programsList);
-			item->setSizeHint(QSize(item->sizeHint().width(),
-						30)); // Set consistent height
-			programsList->setItemWidget(item, widget);
-		}
-	}
+    QFileInfo fileInfo(filename);
+    if (!fileInfo.exists() || !fileInfo.isReadable()) {
+        QMessageBox::warning(this, "Error", "Selected file does not exist or is not readable");
+        return;
+    }
+
+    auto &config = PluginConfig::Get();
+    if (Loadout *loadout = config.GetLoadout(loadoutCombo->currentText().toStdString())) {
+        Program program;
+        program.path = fileInfo.absolutePath().toStdString();
+        program.executable = fileInfo.fileName().toStdString();
+        program.minimized = false;
+        loadout->programs.push_back(program);
+
+        auto item = new QListWidgetItem(programsList);
+        auto widget = new ProgramListItem(filename, false, programsList);
+        item->setSizeHint(QSize(item->sizeHint().width(), 30)); // Set consistent height
+        programsList->setItemWidget(item, widget);
+    } else {
+        QMessageBox::warning(this, "Error", "No loadout selected");
+    }
 }
 
 void SettingsWidget::onDeleteProgram()
 {
-	auto item = programsList->currentItem();
-	if (item) {
-		auto widget = qobject_cast<ProgramListItem*>(programsList->itemWidget(item));
-		if (widget) {
-			QFileInfo fileInfo(widget->getPath());
-			auto &config = PluginConfig::Get();
-			if (Loadout *loadout = config.GetLoadout(
-				    loadoutCombo->currentText().toStdString())) {
-				auto &programs = loadout->programs;
-				programs.erase(
-					std::remove_if(
-						programs.begin(), programs.end(),
-						[&fileInfo](const Program &p) {
-							return p.path ==
-								   fileInfo.absolutePath()
-									   .toStdString() &&
-							       p.executable ==
-								   fileInfo.fileName()
-									   .toStdString();
-						}),
-					programs.end());
-			}
-			delete item;
-		}
-	}
+	// Remove the currently selected program from the list
+    auto item = programsList->currentItem();
+    if (!item) {
+        return;
+    }
+
+    auto widget = qobject_cast<ProgramListItem*>(programsList->itemWidget(item));
+    if (!widget) {
+        return;
+    }
+
+    QFileInfo fileInfo(widget->getPath());
+    auto &config = PluginConfig::Get();
+    if (Loadout *loadout = config.GetLoadout(loadoutCombo->currentText().toStdString())) {
+        auto &programs = loadout->programs;
+        programs.erase(
+            std::remove_if(
+                programs.begin(), programs.end(),
+                [&fileInfo](const Program &p) {
+                    return (p.path == fileInfo.absolutePath().toStdString() &&
+                           p.executable == fileInfo.fileName().toStdString());
+                }),
+            programs.end());
+    }
+    delete item;
 }
 
 void SettingsWidget::onLaunchApps()
 {
+	// Trigger launching apps in the selected loadout
 	AutoStarter::LaunchPrograms(loadoutCombo->currentText().toStdString());
 }
 
 void SettingsWidget::onQuitApps()
 {
+	// Trigger quitting launched apps
 	AutoStarter::QuitPrograms();
 }
 

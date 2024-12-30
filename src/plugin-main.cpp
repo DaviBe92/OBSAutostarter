@@ -1,20 +1,29 @@
 /*
-Plugin Name
-Copyright (C) <Year> <Developer> <Email Address>
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along
-with this program. If not, see <https://www.gnu.org/licenses/>
-*/
+ * OBS Autostarter Plugin
+ * Automatically launches configured applications when OBS starts
+ * 
+ * Features:
+ * - Command line support for loadouts via --autostarter argument
+ * - Configurable auto-launch behavior
+ * - Multiple loadout support
+ * - Optional process termination on OBS shutdown
+ * 
+ * Plugin Name
+ * Copyright (C) <2024> <DaviBe> <davi.be92@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <https://www.gnu.org/licenses/>
+ */
 
 #include <obs-module.h>
 #include <obs-frontend-api.h>
@@ -26,6 +35,20 @@ with this program. If not, see <https://www.gnu.org/licenses/>
 
 OBS_DECLARE_MODULE()
 
+/**
+ * @brief Initializes the OBS Autostarter plugin and handles loadout launching
+ * 
+ * This function:
+ * 1. Checks for command line arguments (--autostarter <loadout>)
+ * 2. Sets up the Tools menu integration
+ * 3. Loads plugin configuration
+ * 4. Launches applications based on:
+ *    - Command line loadout (highest priority)
+ *    - Auto-launch settings (if enabled)
+ *    - User prompt (if askToLaunch is enabled)
+ * 
+ * @return true if initialization is successful
+ */
 bool obs_module_load(void)
 {
 
@@ -83,6 +106,13 @@ bool obs_module_load(void)
 	return true;
 }
 
+/**
+ * @brief Handles plugin cleanup and process termination
+ * 
+ * Called when OBS is shutting down. If autoclose is enabled in the configuration,
+ * this function will attempt to gracefully terminate all processes that were
+ * launched by the plugin.
+ */
 void obs_module_unload(void)
 {
 	// Check if auto close is enabled
