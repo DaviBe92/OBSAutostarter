@@ -3,6 +3,8 @@
 #include "config.hpp"
 #include <QString>
 #include <obs-module.h>
+#include <TlHelp32.h>
+#include <algorithm>
 
 std::vector<HANDLE> AutoStarter::launchedProcesses;
 
@@ -31,8 +33,48 @@ bool AutoStarter::LaunchPrograms(const std::string &loadoutName)
 	return success;
 }
 
+bool AutoStarter::IsProcessRunning(const std::string& executableName)
+{
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (snapshot == INVALID_HANDLE_VALUE) {
+        return false;
+    }
+
+    PROCESSENTRY32W pe32;
+    pe32.dwSize = sizeof(pe32);
+
+    if (!Process32FirstW(snapshot, &pe32)) {
+        CloseHandle(snapshot);
+        return false;
+    }
+
+    std::wstring searchName = QString::fromStdString(executableName).toStdWString();
+    // Convert to lowercase for case-insensitive comparison
+    std::transform(searchName.begin(), searchName.end(), searchName.begin(), ::tolower);
+
+    do {
+        std::wstring processName = pe32.szExeFile;
+        std::transform(processName.begin(), processName.end(), processName.begin(), ::tolower);
+        
+        if (processName == searchName) {
+            CloseHandle(snapshot);
+            return true;
+        }
+    } while (Process32NextW(snapshot, &pe32));
+
+    CloseHandle(snapshot);
+    return false;
+}
+
 bool AutoStarter::LaunchProgram(const Program &program)
 {
+    // Check if program is already running
+    if (IsProcessRunning(program.executable)) {
+        blog(LOG_INFO, "Program '%s' is already running, skipping launch",
+             program.executable.c_str());
+        return true;
+    }
+
 	QString fullPath =
 		QString::fromStdString(program.path + "/" + program.executable);
 

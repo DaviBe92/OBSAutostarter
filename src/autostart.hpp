@@ -13,4 +13,5 @@ private:
 	static std::vector<HANDLE> launchedProcesses;
 	static bool LaunchProgram(const Program &program);
 	static bool QuitProcess(HANDLE process);
+	static bool IsProcessRunning(const std::string& executableName);
 };

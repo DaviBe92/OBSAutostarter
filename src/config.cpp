@@ -106,7 +106,8 @@ void PluginConfig::Load()
 	QString configPath = GetConfigPath();
 	QFile file(configPath);
 	if (!file.open(QIODevice::ReadOnly)) {
-		return;
+		// If the file does not exist, create a default loadout
+		InitDefaultLoadout();
 	}
 
 	QByteArray data = file.readAll();
