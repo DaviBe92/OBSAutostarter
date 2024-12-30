@@ -2,6 +2,7 @@
 
 Plugin for OBS Studio that automatically launches and quits programs alongside OBS. Perfect for streamers and content creators who need to start multiple applications when beginning their streaming or recording sessions.
 
+
 ## Features
 
 - 🚀 Automatically launch programs when OBS starts
@@ -13,6 +14,15 @@ Plugin for OBS Studio that automatically launches and quits programs alongside O
   - 💬 Optional launch confirmation dialog
 - 🎮 Launch and quit programs directly from OBS
 - 💻 Command line support (`--autostarter "loadoutname"`)
+
+#### Settings
+
+![OBS Autostarter Settings Interface](resources/Settings_Screen.png)
+
+#### Launch Dialog
+
+![OBS Autostarter Launch Configuration Dialog](resources/Launch_Screen.png) 
+![OBS Autostarter Launch Dialog with Program List](resources/Launch_Screen_list.png)
 
 ## Improvements over the old Lua Script
 
@@ -53,9 +63,9 @@ Plugin for OBS Studio that automatically launches and quits programs alongside O
 
 - **Loadouts**: Create multiple program groups for different scenarios
 - **Launch Options**:
-  - 🔽 Minimize on start
-  - 🔄 Auto-close when OBS exits
-  - 💬 Launch confirmation dialog
+  - Minimize on start
+  - Auto-close when OBS exits
+  - Launch confirmation dialog
 - **Command Line**: 
   Start OBS with a specific loadout using:
   ```
