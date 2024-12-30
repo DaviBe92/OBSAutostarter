@@ -8,6 +8,7 @@
 struct Program {
 	std::string path;
 	std::string executable;
+	bool minimized = false;
 };
 
 struct Loadout {

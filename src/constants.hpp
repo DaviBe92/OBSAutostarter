@@ -3,7 +3,7 @@
 
 namespace Constants {
     // Version information
-    inline const std::string VERSION = "2.0 alpha";
+    inline const std::string VERSION = "2.0 beta";
     inline const std::string AUTHOR = "DaviBe";
     inline const std::string VERSION_STRING = "Version " + VERSION + " by " + AUTHOR;
 
@@ -13,7 +13,7 @@ namespace Constants {
 
     // Window properties
     inline const int DEFAULT_WINDOW_WIDTH = 400;
-    inline const int DEFAULT_WINDOW_HEIGHT = 500;
+    inline const int DEFAULT_WINDOW_HEIGHT = 550;
 
     // UI text
     inline const std::string WINDOW_TITLE = "Autostarter Settings";

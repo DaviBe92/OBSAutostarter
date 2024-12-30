@@ -1,14 +1,13 @@
 # OBS Autostarter
 
-The OBS Autostarter is a lua script for OBS to automatically launch programms when OBS starts and to close them again then OBS is quit.
+The OBS Autostarter is a plugin for OBS to automatically launch programms when OBS starts and to close them again then OBS is quit.
 
 ## Instalation
 
-- Move script to script folder (always stay organized!)
-- Add Script in OBS
+- Move plugin files to the OBS folder
 - Select executable
 
 ## TODO
 
 - Check if an instance is already running
-- Integrate a way to choose more programms from a single script (Done, thx to carlosgrossi)
+- Start minimized option

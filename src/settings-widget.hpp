@@ -8,6 +8,19 @@
 #include <QLabel>
 #include <QHBoxLayout>
 
+class ProgramListItem : public QWidget {
+	Q_OBJECT
+public:
+	ProgramListItem(const QString &path, bool minimized, QWidget *parent = nullptr);
+	QString getPath() const { return fullPath; }
+	bool isMinimized() const { return minimizedBox->isChecked(); }
+
+private:
+	QString fullPath;
+	QLabel *pathLabel;
+	QCheckBox *minimizedBox;
+};
+
 class SettingsWidget : public QWidget {
 	Q_OBJECT
 public:

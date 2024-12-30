@@ -59,8 +59,14 @@ bool AutoStarter::LaunchProgram(const Program &program)
 		return false;
 	}
 
-	STARTUPINFO si = {sizeof(STARTUPINFO)};
-	PROCESS_INFORMATION pi;
+    STARTUPINFO si = {sizeof(STARTUPINFO)};
+
+    // check if the minimized flag is set
+    if (program.minimized) {
+        si.dwFlags = STARTF_USESHOWWINDOW;  // Minimize the window
+        si.wShowWindow = SW_SHOWMINIMIZED;  // Minimize the window
+    }
+    PROCESS_INFORMATION pi;
 
 	std::wstring commandLine = fullPath.toStdWString();
 

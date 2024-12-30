@@ -45,6 +45,7 @@ QJsonObject PluginConfig::ToJson() const
 				QString::fromStdString(program.path);
 			programObj["executable"] =
 				QString::fromStdString(program.executable);
+			programObj["minimized"] = program.minimized;
 			programsArray.append(programObj);
 		}
 		loadoutObj["programs"] = programsArray;
@@ -79,6 +80,7 @@ void PluginConfig::FromJson(const QJsonObject &json)
 			program.executable = programObj["executable"]
 						     .toString()
 						     .toStdString();
+			program.minimized = programObj["minimized"].toBool(false);
 			loadout.programs.push_back(program);
 		}
 

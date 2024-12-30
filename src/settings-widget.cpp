@@ -12,6 +12,30 @@
 #include <QMessageBox>
 #include <QLineEdit>
 
+ProgramListItem::ProgramListItem(const QString &path, bool minimized,
+				 QWidget *parent)
+	: QWidget(parent), fullPath(path)
+{
+	auto layout = new QHBoxLayout(this);
+	layout->setContentsMargins(5, 0, 5, 0); // Reduce vertical margins
+
+	QFileInfo fileInfo(path);
+	pathLabel = new QLabel(fileInfo.fileName(), this);
+	pathLabel->setToolTip(path);
+	pathLabel->setAlignment(Qt::AlignVCenter);
+
+	auto minimizedLabel = new QLabel("| Minimized?", this);
+	minimizedLabel->setAlignment(Qt::AlignVCenter);
+
+	minimizedBox = new QCheckBox(this);
+	minimizedBox->setChecked(minimized);
+
+	layout->addWidget(pathLabel);
+	layout->addStretch();
+	layout->addWidget(minimizedLabel);
+	layout->addWidget(minimizedBox);
+}
+
 SettingsWidget *settings_instance = nullptr;
 
 SettingsWidget::SettingsWidget(QWidget *parent) : QWidget(parent)
@@ -22,8 +46,10 @@ SettingsWidget::SettingsWidget(QWidget *parent) : QWidget(parent)
 
 	auto mainLayout = new QVBoxLayout(this);
 
-	enableCheckbox = new QCheckBox("Enable", this);
+	enableCheckbox = new QCheckBox("Enable Autostarter", this);
 	mainLayout->addWidget(enableCheckbox);
+
+    mainLayout->addSpacing(10);
 
 	loadoutLabel = new QLabel("Loadout:", this);
 	mainLayout->addWidget(loadoutLabel);
@@ -32,8 +58,8 @@ SettingsWidget::SettingsWidget(QWidget *parent) : QWidget(parent)
 	loadoutCombo = new QComboBox(this);
 	addLoadoutButton = new QPushButton("Add", this);
 	removeLoadoutButton = new QPushButton("Remove", this);
-	addLoadoutButton->setMaximumWidth(30);
-	removeLoadoutButton->setMaximumWidth(30);
+	addLoadoutButton->setMaximumWidth(60);
+	removeLoadoutButton->setMaximumWidth(80);
 
 	loadoutLayout->addWidget(loadoutCombo);
 	loadoutLayout->addWidget(addLoadoutButton);
@@ -63,11 +89,16 @@ SettingsWidget::SettingsWidget(QWidget *parent) : QWidget(parent)
 	buttonLayout->addWidget(deleteProgramButton);
 	mainLayout->addLayout(buttonLayout);
 
-	askToLaunchCheckbox = new QCheckBox("Ask on launch", this);
-	mainLayout->addWidget(askToLaunchCheckbox);
+    mainLayout->addSpacing(10);
 
+	auto checkboxLayout = new QHBoxLayout();
+	askToLaunchCheckbox = new QCheckBox("Ask on launch", this);
 	autocloseCheckbox = new QCheckBox("Autoclose (only for .exe)", this);
-	mainLayout->addWidget(autocloseCheckbox);
+	checkboxLayout->addWidget(askToLaunchCheckbox);
+	checkboxLayout->addWidget(autocloseCheckbox);
+	mainLayout->addLayout(checkboxLayout);
+
+    mainLayout->addSpacing(10);
 
 	auto launchLayout = new QHBoxLayout();
 	launchButton = new QPushButton("Launch Apps", this);
@@ -181,6 +212,30 @@ void SettingsWidget::onSave()
 	config.autoclose = autocloseCheckbox->isChecked();
 	config.currentLoadout = loadoutCombo->currentText().toStdString();
 
+	if (Loadout *loadout = config.GetLoadout(
+		    loadoutCombo->currentText().toStdString())) {
+		for (int i = 0; i < programsList->count(); i++) {
+			auto item = programsList->item(i);
+			auto widget = qobject_cast<ProgramListItem *>(
+				programsList->itemWidget(item));
+			if (widget) {
+				QFileInfo fileInfo(widget->getPath());
+				for (auto &program : loadout->programs) {
+					if (program.path ==
+						    fileInfo.absolutePath()
+							    .toStdString() &&
+					    program.executable ==
+						    fileInfo.fileName()
+							    .toStdString()) {
+						program.minimized =
+							widget->isMinimized();
+						break;
+					}
+				}
+			}
+		}
+	}
+
 	config.Save();
 	close();
 }
@@ -202,8 +257,15 @@ void SettingsWidget::onAddProgram()
 			Program program;
 			program.path = fileInfo.absolutePath().toStdString();
 			program.executable = fileInfo.fileName().toStdString();
+			program.minimized = false;
 			loadout->programs.push_back(program);
-			programsList->addItem(filename);
+
+			auto item = new QListWidgetItem(programsList);
+			auto widget = new ProgramListItem(filename, false,
+							  programsList);
+			item->setSizeHint(QSize(item->sizeHint().width(),
+						30)); // Set consistent height
+			programsList->setItemWidget(item, widget);
 		}
 	}
 }
@@ -212,25 +274,28 @@ void SettingsWidget::onDeleteProgram()
 {
 	auto item = programsList->currentItem();
 	if (item) {
-		QFileInfo fileInfo(item->text());
-		auto &config = PluginConfig::Get();
-		if (Loadout *loadout = config.GetLoadout(
-			    loadoutCombo->currentText().toStdString())) {
-			auto &programs = loadout->programs;
-			programs.erase(
-				std::remove_if(
-					programs.begin(), programs.end(),
-					[&fileInfo](const Program &p) {
-						return p.path ==
-							       fileInfo.absolutePath()
-								       .toStdString() &&
-						       p.executable ==
-							       fileInfo.fileName()
-								       .toStdString();
-					}),
-				programs.end());
+		auto widget = qobject_cast<ProgramListItem*>(programsList->itemWidget(item));
+		if (widget) {
+			QFileInfo fileInfo(widget->getPath());
+			auto &config = PluginConfig::Get();
+			if (Loadout *loadout = config.GetLoadout(
+				    loadoutCombo->currentText().toStdString())) {
+				auto &programs = loadout->programs;
+				programs.erase(
+					std::remove_if(
+						programs.begin(), programs.end(),
+						[&fileInfo](const Program &p) {
+							return p.path ==
+								   fileInfo.absolutePath()
+									   .toStdString() &&
+							       p.executable ==
+								   fileInfo.fileName()
+									   .toStdString();
+						}),
+					programs.end());
+			}
+			delete item;
 		}
-		delete item;
 	}
 }
 
@@ -253,7 +318,12 @@ void SettingsWidget::UpdateProgramList()
 		for (const auto &program : loadout->programs) {
 			QString fullPath = QString::fromStdString(
 				program.path + "/" + program.executable);
-			programsList->addItem(fullPath);
+			auto item = new QListWidgetItem(programsList);
+			auto widget = new ProgramListItem(
+				fullPath, program.minimized, programsList);
+			item->setSizeHint(QSize(item->sizeHint().width(),
+						30)); // Set consistent height
+			programsList->setItemWidget(item, widget);
 		}
 	}
 }
