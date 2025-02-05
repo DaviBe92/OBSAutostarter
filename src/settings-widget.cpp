@@ -119,41 +119,11 @@ SettingsWidget::SettingsWidget(QWidget *parent) : QWidget(parent)
 
 	mainLayout->addSpacing(10);
 
-	socialLabel = new QLabel(
-		QString::fromStdString(Constants::SOCIAL_LABEL), this);
-	mainLayout->addWidget(socialLabel);
-	mainLayout->addSpacing(5);
-
-	auto socialLayout = new QHBoxLayout();
-
-	githubLink = new QLabel(
-		"<a href='" + QString::fromStdString(Constants::GITHUB_URL) +
-			"'>"
-			"<img src=':/github.png' height='30' style='vertical-align: middle;'></a>",
-		this);
-	githubLink->setOpenExternalLinks(true);
-	githubLink->setToolTip(
-		QString::fromStdString(Constants::GITHUB_TOOLTIP));
-	githubLink->setAlignment(Qt::AlignCenter);
-
-	discordLink = new QLabel(
-		"<a href='" + QString::fromStdString(Constants::DISCORD_URL) +
-			"'>"
-			"<img src=':/discord.png' height='30' style='vertical-align: middle;'></a>",
-		this);
-	discordLink->setOpenExternalLinks(true);
-	discordLink->setToolTip(
-		QString::fromStdString(Constants::DISCORD_TOOLTIP));
-
-	socialLayout->addWidget(githubLink);
-	socialLayout->addWidget(discordLink);
-	mainLayout->addLayout(socialLayout);
-
-	// Add vertical spacing
-	mainLayout->addSpacing(5);
-
 	versionLabel = new QLabel(
-		QString::fromStdString(Constants::VERSION_STRING), this);
+		"<a href=\"" + QString::fromStdString(Constants::GITHUB_URL) + "\">" + 
+		QString::fromStdString(Constants::VERSION_STRING) + "</a>", this);
+	versionLabel->setOpenExternalLinks(true);
+	versionLabel->setCursor(Qt::PointingHandCursor);
 	mainLayout->addWidget(versionLabel);
 
 	connect(saveButton, &QPushButton::clicked, this,
