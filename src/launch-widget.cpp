@@ -20,7 +20,7 @@ static LaunchWidget *widget = nullptr; ///< Singleton instance of the launch dia
 LaunchWidget::LaunchWidget(QWidget *parent) : QDialog(parent)
 {
     // Configure dialog properties
-    setWindowTitle("OBS Autostarter");
+    setWindowTitle("Autostarter");
     setFixedSize(300, 150);
     setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
     setModal(true); // Block interaction with parent window
