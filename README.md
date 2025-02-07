@@ -1,4 +1,4 @@
-# OBS Autostarter
+# Autostarter for OBS
 
 Plugin for OBS Studio that automatically launches and quits programs alongside OBS. Perfect for streamers and content creators who need to start multiple applications when beginning their streaming or recording sessions.
 
@@ -17,12 +17,12 @@ Plugin for OBS Studio that automatically launches and quits programs alongside O
 
 #### Settings
 
-![OBS Autostarter Settings Interface](resources/Settings_Screen.png)
+![Autostarter Settings Interface](resources/Settings_Screen.png)
 
 #### Launch Dialog
 
-![OBS Autostarter Launch Configuration Dialog](resources/Launch_Screen.png) 
-![OBS Autostarter Launch Dialog with Program List](resources/Launch_Screen_list.png)
+![Autostarter Launch Configuration Dialog](resources/Launch_Screen.png) 
+![Autostarter Launch Dialog with Program List](resources/Launch_Screen_list.png)
 
 ## Improvements over the old Lua Script
 
@@ -43,7 +43,7 @@ Plugin for OBS Studio that automatically launches and quits programs alongside O
 
 ## Installation
 
-1. Download the latest release from the [releases page](https://github.com/DaviBe92/OBSAutostarter/releases/latest)
+1. Download the latest release from the [releases page](https://github.com/DaviBe92/Autostarter/releases/latest)
 2. Close OBS Studio if it's running
 3. Extract the `autostarter.dll` to your OBS plugins directory:
    `C:\Program Files\obs-studio\obs-plugins\64bit`

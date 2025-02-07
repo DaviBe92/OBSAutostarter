@@ -11,7 +11,7 @@ namespace Constants {
     inline const std::string VERSION_STRING = "Version " + VERSION + " by " + AUTHOR;
 
     // Social links
-    inline const std::string GITHUB_URL = "https://github.com/DaviBe92/OBSAutostarter";
+    inline const std::string GITHUB_URL = "https://github.com/DaviBe92/Autostarter";
 
     // Window properties
     inline const int DEFAULT_WINDOW_WIDTH = 400;

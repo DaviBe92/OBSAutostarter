@@ -1,5 +1,5 @@
 /*
- * OBS Autostarter Plugin
+ * Autostarter Plugin for OBS Studio
  * Automatically launches configured applications when OBS starts
  * 
  * Features:
@@ -36,7 +36,7 @@
 OBS_DECLARE_MODULE()
 
 /**
- * @brief Initializes the OBS Autostarter plugin and handles loadout launching
+ * @brief Initializes the Autostarter plugin and handles loadout launching
  * 
  * This function:
  * 1. Checks for command line arguments (--autostarter <loadout>)
@@ -80,7 +80,7 @@ bool obs_module_load(void)
 			// Show an error modal
 			QMessageBox msgBox;
 			msgBox.setIcon(QMessageBox::Warning);
-			msgBox.setWindowTitle("OBS Autostarter");
+			msgBox.setWindowTitle("Autostarter");
 			msgBox.setText(errorString.c_str());
 			msgBox.setStandardButtons(QMessageBox::Ok);
 			msgBox.setDefaultButton(QMessageBox::Ok);

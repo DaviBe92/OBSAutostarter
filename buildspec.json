@@ -37,10 +37,10 @@
         }
     },
     "name": "autostarter",
-    "displayName": "OBS Autostarter",
+    "displayName": "Autostarter for OBS",
     "version": "2.0.0",
     "author": "DaviBe",
-    "website": "https://github.com/DaviBe92/OBSAutostarter",
+    "website": "https://github.com/DaviBe92/Autostarter",
     "email": "davi.be92@gmail.com",
     "uuids": {
         "windowsApp": "00000000-0000-0000-0000-000000000000"
